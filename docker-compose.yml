@@ -1,0 +1,31 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: task-manager-mongodb
+    restart: always
+    volumes:
+      - mongodb_data:/data/db
+
+  backend:
+    image: jeevanjacob11/task-manager-backend:latest
+    container_name: task-manager-backend
+    restart: always
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/devops_task_manager
+      PORT: 5000
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+
+  frontend:
+    image: jeevanjacob11/task-manager-frontend:latest
+    container_name: task-manager-frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  mongodb_data:

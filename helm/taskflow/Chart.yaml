@@ -1,0 +1,6 @@
+apiVersion: v2
+name: taskflow
+description: A production-oriented MERN task management application deployed on Kubernetes
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

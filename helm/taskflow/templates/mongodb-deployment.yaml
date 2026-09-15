@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-mongodb
+spec:
+  replicas: {{ .Values.replicaCount.mongodb }}
+
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-mongodb
+
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-mongodb
+
+    spec:
+      containers:
+        - name: mongodb
+          image: "{{ .Values.images.mongodb.repository }}:{{ .Values.images.mongodb.tag }}"
+
+          ports:
+            - containerPort: 27017
+
+          resources:
+            {{- toYaml .Values.resources.mongodb | nindent 12 }}
+
+          volumeMounts:
+            - name: mongodb-storage
+              mountPath: /data/db
+
+      volumes:
+        - name: mongodb-storage
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-mongodb-pvc
