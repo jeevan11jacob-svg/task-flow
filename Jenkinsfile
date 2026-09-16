@@ -3,68 +3,130 @@ pipeline {
 
     environment {
         DOCKERHUB_USER = 'jeevanjacob11'
+        DOCKER_CREDENTIALS = 'dockerhub-creds'
+        HELM_RELEASE = 'taskflow'
+        K8S_NAMESPACE = 'taskflow'
     }
 
     stages {
 
-        stage('Test') {
-    steps {
-        sh 'docker run --rm -v jenkins_home:/var/jenkins_home -w /var/jenkins_home/workspace/DevOps-Task-Manager/server node:24 npm install'
-        sh 'docker run --rm -v jenkins_home:/var/jenkins_home -w /var/jenkins_home/workspace/DevOps-Task-Manager/server node:24 npm test'
-    }
-}
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
 
-        stage('Build Backend Docker Image') {
-    steps {
-        sh 'docker build -t task-manager-backend:$BUILD_NUMBER ./server'
-    }
-}
+        stage('Test Backend') {
+            steps {
+                sh '''
+                    cd server
+                    npm ci
+                    npm test
+                '''
+            }
+        }
 
-stage('Build Frontend Docker Image') {
-    steps {
-        sh 'docker build -t task-manager-frontend:$BUILD_NUMBER ./client'
-    }
-}
+        stage('Set Image Tag') {
+            steps {
+                script {
+                    env.IMAGE_TAG = sh(
+                        script: 'git rev-parse --short HEAD',
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Docker image tag: ${env.IMAGE_TAG}"
+                }
+            }
+        }
+
+        stage('Build Backend Image') {
+            steps {
+                sh '''
+                    docker build \
+                      -t ${DOCKERHUB_USER}/taskflow-backend:${IMAGE_TAG} \
+                      ./server
+                '''
+            }
+        }
+
+        stage('Build Frontend Image') {
+            steps {
+                sh '''
+                    docker build \
+                      -t ${DOCKERHUB_USER}/taskflow-frontend:${IMAGE_TAG} \
+                      ./client
+                '''
+            }
+        }
+
         stage('Push Images to Docker Hub') {
             steps {
                 withCredentials([
                     usernamePassword(
-                        credentialsId: 'dockerhub-credentials',
+                        credentialsId: "${DOCKER_CREDENTIALS}",
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASSWORD'
                     )
                 ]) {
                     sh '''
-    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
+                        set -e
 
-    docker tag task-manager-backend:$BUILD_NUMBER $DOCKER_USER/task-manager-backend:$BUILD_NUMBER
-    docker tag task-manager-backend:$BUILD_NUMBER $DOCKER_USER/task-manager-backend:latest
+                        echo "$DOCKER_PASSWORD" | \
+                            docker login \
+                            -u "$DOCKER_USER" \
+                            --password-stdin
 
-    docker tag task-manager-frontend:$BUILD_NUMBER $DOCKER_USER/task-manager-frontend:$BUILD_NUMBER
-    docker tag task-manager-frontend:$BUILD_NUMBER $DOCKER_USER/task-manager-frontend:latest
+                        docker push \
+                            ${DOCKER_USER}/taskflow-backend:${IMAGE_TAG}
 
-    docker push $DOCKER_USER/task-manager-backend:$BUILD_NUMBER
-    docker push $DOCKER_USER/task-manager-backend:latest
+                        docker push \
+                            ${DOCKER_USER}/taskflow-frontend:${IMAGE_TAG}
 
-    docker push $DOCKER_USER/task-manager-frontend:$BUILD_NUMBER
-    docker push $DOCKER_USER/task-manager-frontend:latest
-
-    docker logout
-'''
+                        docker logout
+                    '''
                 }
             }
         }
 
-        stage('Deploy to EC2') {
+        stage('Deploy with Helm') {
             steps {
                 sh '''
-                    cd /workspace/task-manager-devops
-
-                    docker compose -p task-manager-devops pull
-
-                    docker compose -p task-manager-devops up -d
+                    helm upgrade ${HELM_RELEASE} ./helm/taskflow \
+                        --namespace ${K8S_NAMESPACE} \
+                        --set images.backend.tag=${IMAGE_TAG} \
+                        --set images.frontend.tag=${IMAGE_TAG} \
+                        --wait \
+                        --timeout 5m
                 '''
             }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh '''
+                    kubectl rollout status \
+                        deployment/${HELM_RELEASE}-backend \
+                        -n ${K8S_NAMESPACE} \
+                        --timeout=5m
+
+                    kubectl rollout status \
+                        deployment/${HELM_RELEASE}-frontend \
+                        -n ${K8S_NAMESPACE} \
+                        --timeout=5m
+
+                    kubectl get pods -n ${K8S_NAMESPACE}
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'TaskFlow CI/CD pipeline completed successfully!'
+        }
+
+        failure {
+            echo 'TaskFlow CI/CD pipeline failed.'
         }
     }
 }

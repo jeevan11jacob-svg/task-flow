@@ -53,7 +53,7 @@ resources:
 
   mongodb:
     requests:
-      cpu: "250m"
+      cpu: "100m"
       memory: "256Mi"
     limits:
       cpu: "500m"
@@ -61,6 +61,8 @@ resources:
 
 mongodb:
   database: taskflow
+  username: taskflow_user
+  password: taskflow_password
   storage:
     size: 5Gi
 

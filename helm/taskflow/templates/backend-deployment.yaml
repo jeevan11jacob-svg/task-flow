@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Release.Name }}-backend
+  labels:
+    app: {{ .Release.Name }}-backend
+
 spec:
   replicas: {{ .Values.replicaCount.backend }}
 
@@ -21,28 +24,51 @@ spec:
           imagePullPolicy: {{ .Values.images.backend.pullPolicy }}
 
           ports:
-            - containerPort: 5000
+            - name: http
+              containerPort: 5000
+              protocol: TCP
 
           env:
             - name: PORT
-              value: "5000"
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Release.Name }}-backend-config
+                  key: PORT
+
+            - name: MONGO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-mongodb-secret
+                  key: MONGO_USERNAME
+
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-mongodb-secret
+                  key: MONGO_PASSWORD
 
             - name: MONGO_URI
-              value: "mongodb://{{ .Release.Name }}-mongodb:27017/{{ .Values.mongodb.database }}"
+              value: "mongodb://$(MONGO_USERNAME):$(MONGO_PASSWORD)@{{ .Release.Name }}-mongodb:27017/{{ .Values.mongodb.database }}?authSource=admin"
 
           resources:
             {{- toYaml .Values.resources.backend | nindent 12 }}
+
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            failureThreshold: 30
+            periodSeconds: 5
 
           livenessProbe:
             httpGet:
               path: /health
               port: 5000
-            initialDelaySeconds: 10
             periodSeconds: 10
 
           readinessProbe:
             httpGet:
               path: /health
               port: 5000
-            initialDelaySeconds: 5
             periodSeconds: 5
+

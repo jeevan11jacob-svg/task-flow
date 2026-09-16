@@ -2,7 +2,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Release.Name }}-mongodb
+  labels:
+    app: {{ .Release.Name }}-mongodb
+
 spec:
+  strategy:
+    type: Recreate
   replicas: {{ .Values.replicaCount.mongodb }}
 
   selector:
@@ -18,9 +23,31 @@ spec:
       containers:
         - name: mongodb
           image: "{{ .Values.images.mongodb.repository }}:{{ .Values.images.mongodb.tag }}"
+          imagePullPolicy: {{ .Values.images.mongodb.pullPolicy }}
+
+          args:
+            - "--auth"
 
           ports:
-            - containerPort: 27017
+            - name: mongodb
+              containerPort: 27017
+              protocol: TCP
+
+          env:
+            - name: MONGO_INITDB_DATABASE
+              value: "{{ .Values.mongodb.database }}"
+
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-mongodb-secret
+                  key: MONGO_USERNAME
+
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-mongodb-secret
+                  key: MONGO_PASSWORD
 
           resources:
             {{- toYaml .Values.resources.mongodb | nindent 12 }}
@@ -28,6 +55,22 @@ spec:
           volumeMounts:
             - name: mongodb-storage
               mountPath: /data/db
+
+          readinessProbe:
+            tcpSocket:
+              port: 27017
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+
+          livenessProbe:
+            tcpSocket:
+              port: 27017
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
 
       volumes:
         - name: mongodb-storage
