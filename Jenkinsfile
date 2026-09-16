@@ -19,9 +19,11 @@ pipeline {
         stage('Test Backend') {
             steps {
                 sh '''
-                    cd server
-                    npm ci
-                    npm test
+                    docker run --rm \
+                      -v "$WORKSPACE/server:/app" \
+                      -w /app \
+                      node:24 \
+                      sh -c "npm ci && npm test"
                 '''
             }
         }
