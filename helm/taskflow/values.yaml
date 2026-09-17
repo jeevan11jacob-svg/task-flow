@@ -61,8 +61,6 @@ resources:
 
 mongodb:
   database: taskflow
-  username: taskflow_user
-  password: taskflow_password
   storage:
     size: 5Gi
 
