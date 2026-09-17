@@ -194,7 +194,6 @@ task-flow/
 │           ├── mongodb-service.yaml
 │           └── ingress.yaml
 │
-├── screenshots/
 ├── Jenkinsfile
 ├── docker-compose.yml
 └── README.md
@@ -761,20 +760,6 @@ Check Helm status:
 ```bash
 helm status taskflow -n taskflow
 ```
-
-## Project Screenshots
-
-The `screenshots/` directory contains project evidence such as:
-
-* TaskFlow application dashboard
-* CRUD functionality
-* Jenkins pipeline
-* Docker Hub images
-* Kubernetes deployment
-* AWS infrastructure
-* NGINX Ingress
-* CloudWatch/infrastructure monitoring
-* Deployment and troubleshooting evidence
 
 ## DevOps Skills Demonstrated
 
