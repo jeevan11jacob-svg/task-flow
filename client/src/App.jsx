@@ -152,7 +152,7 @@ function App() {
   return (
     <div className="app">
       <header>
-        <h1>DevOps Task Manager</h1>
+        <h1>TaskFlow</h1>
         <p>Manage your development and DevOps tasks</p>
       </header>
 
