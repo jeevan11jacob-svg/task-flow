@@ -5,26 +5,37 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #f4f6f8;
-  color: #222;
+  background: #0f172a;
+  color: #e5e7eb;
 }
 
 .app {
-  max-width: 1100px;
+  max-width: 1150px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 35px 20px 60px;
 }
+
+/* Header */
 
 header {
   margin-bottom: 30px;
+  padding: 32px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #312e81, #7c3aed, #9333ea);
+  box-shadow: 0 15px 35px rgba(124, 58, 237, 0.25);
 }
 
 header h1 {
-  margin-bottom: 8px;
+  margin: 0 0 8px;
+  color: #ffffff;
+  font-size: 38px;
+  letter-spacing: -1px;
 }
 
 header p {
-  color: #666;
+  margin: 0;
+  color: #ede9fe;
+  font-size: 16px;
 }
 
 /* Dashboard */
@@ -32,26 +43,44 @@ header p {
 .dashboard {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 18px;
   margin-bottom: 30px;
 }
 
 .stat-card {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+  background: #1e293b;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid #334155;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card::after {
+  content: "";
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  right: -30px;
+  top: -30px;
+  border-radius: 50%;
+  background: rgba(124, 58, 237, 0.15);
 }
 
 .stat-card h3 {
   margin: 0;
-  color: #666;
+  color: #94a3b8;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
 }
 
 .stat-card p {
-  font-size: 30px;
-  font-weight: bold;
-  margin: 10px 0 0;
+  margin: 12px 0 0;
+  font-size: 36px;
+  font-weight: 700;
+  color: #f8fafc;
 }
 
 /* Task Form */
@@ -68,70 +97,118 @@ header p {
 .filters input,
 .filters select {
   width: 100%;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: 13px 14px;
+  border: 1px solid #334155;
+  border-radius: 10px;
   font-size: 15px;
-  background: white;
+  background: #1e293b;
+  color: #e5e7eb;
 }
+
+.add-task input::placeholder,
+.filters input::placeholder {
+  color: #64748b;
+}
+
+.add-task input:focus,
+.add-task select:focus,
+.filters input:focus,
+.filters select:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+/* Buttons */
 
 button {
   border: none;
-  padding: 12px 18px;
-  border-radius: 6px;
+  padding: 13px 18px;
+  border-radius: 10px;
   cursor: pointer;
-  background: #222;
+  background: linear-gradient(135deg, #7c3aed, #9333ea);
   color: white;
+  font-weight: 600;
+  transition: 0.2s ease;
 }
 
 button:hover {
-  opacity: 0.85;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.3);
 }
 
-/* Search and Filters */
+/* Filters */
 
 .filters {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
   gap: 10px;
-  margin-bottom: 30px;
+  margin-bottom: 32px;
 }
 
 /* Tasks */
 
-.tasks h2 {
-  margin-bottom: 15px;
+.tasks {
+  margin-top: 10px;
 }
 
+.tasks h2 {
+  margin: 0 0 16px;
+  color: #f8fafc;
+  font-size: 22px;
+}
+
+/* Task Cards */
+
 .task-card {
-  background: white;
-  padding: 18px;
-  margin-bottom: 12px;
-  border-radius: 8px;
+  background: #1e293b;
+  padding: 20px;
+  margin-bottom: 14px;
+  border-radius: 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #334155;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  transition: 0.2s ease;
+}
+
+.task-card:hover {
+  border-color: #7c3aed;
+  transform: translateY(-2px);
 }
 
 .task-card h3 {
   margin: 0 0 8px;
+  color: #f8fafc;
 }
 
 .task-card p {
-  margin: 0 0 10px;
-  color: #555;
+  margin: 0 0 12px;
+  color: #94a3b8;
 }
 
 .task-card span {
-  margin-right: 20px;
-  color: #666;
-  font-size: 14px;
+  display: inline-block;
+  margin-right: 16px;
+  color: #cbd5e1;
+  font-size: 13px;
 }
 
 .task-card button {
   margin-left: 8px;
+}
+
+/* Empty State */
+
+.tasks > p {
+  padding: 35px;
+  text-align: center;
+  background: #1e293b;
+  border: 1px dashed #475569;
+  border-radius: 14px;
+  color: #94a3b8;
 }
 
 /* Responsive */
@@ -143,6 +220,18 @@ button:hover {
 }
 
 @media (max-width: 700px) {
+  .app {
+    padding: 20px 14px 40px;
+  }
+
+  header {
+    padding: 24px;
+  }
+
+  header h1 {
+    font-size: 30px;
+  }
+
   .dashboard {
     grid-template-columns: 1fr;
   }
@@ -158,5 +247,10 @@ button:hover {
   .task-card {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .task-card button {
+    margin-left: 0;
+    margin-right: 8px;
   }
 }
